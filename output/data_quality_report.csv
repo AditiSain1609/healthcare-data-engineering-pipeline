@@ -1,0 +1,6 @@
+table_name,total_records,cleaned_records,valid_records,invalid_records,duplicate_records,missing_values,quality_score
+patients,501,500,499,1,1,1,99.6
+doctors,101,100,98,2,1,1,97.03
+appointments,2001,2000,1940,60,1,1,96.95
+appointment_services,4000,4000,3797,203,0,0,94.92
+billing,2000,2000,1937,63,0,0,96.85

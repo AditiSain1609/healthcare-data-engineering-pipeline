@@ -1,0 +1,99 @@
+doctor_id,doctor_name,specialization,city,consultation_fee,total_services,total_appointments,total_revenue
+1,Dr. Neha Singh,Pediatrics,Chennai,1200.0,41,14,58100.0
+2,Dr. Priya Agarwal,Orthopedics,Delhi,2000.0,43,22,53300.0
+3,Dr. Aarav Singh,Orthopedics,Pune,500.0,41,13,63300.0
+4,Dr. Ananya Agarwal,Orthopedics,Pune,2000.0,36,19,50000.0
+5,Dr. Isha Sharma,Pediatrics,Delhi,800.0,42,20,61300.0
+7,Dr. Aarav Agarwal,Dermatology,Bangalore,1200.0,46,24,80300.0
+8,Dr. Kavya Agarwal,Ent,Delhi,700.0,32,20,55200.0
+9,Dr. Simran Reddy,Cardiology,Chennai,1500.0,39,19,49600.0
+10,Dr. Vivaan Reddy,Cardiology,Delhi,800.0,36,20,56400.0
+12,Dr. Ananya Joshi,Ent,Chennai,1000.0,44,21,74900.0
+13,Dr. Simran Sharma,General Medicine,Bangalore,1200.0,36,18,50300.0
+14,Dr. Arjun Joshi,Orthopedics,Pune,1000.0,43,31,66800.0
+15,Dr. Sneha Gupta,Orthopedics,Bangalore,1000.0,35,22,56200.0
+16,Dr. Aditi Joshi,Orthopedics,Chennai,800.0,35,22,52200.0
+17,Dr. Kavya Kumar,Pediatrics,Delhi,700.0,55,17,75000.0
+18,Dr. Arjun Kumar,Pediatrics,Mumbai,700.0,41,20,53200.0
+19,Dr. Rahul Kumar,General Medicine,Bangalore,1500.0,50,23,74500.0
+20,Dr. Isha Mehta,Orthopedics,Delhi,800.0,47,21,69100.0
+21,Dr. Sneha Kumar,Orthopedics,Hyderabad,1200.0,47,20,71600.0
+22,Dr. Kavya Joshi,Dermatology,Delhi,2000.0,46,22,65300.0
+23,Dr. Rohan Patel,Orthopedics,Hyderabad,800.0,48,26,61700.0
+24,Dr. Isha Verma,Orthopedics,Delhi,1500.0,42,22,69500.0
+25,Dr. Rahul Mehta,Neurology,Bangalore,2000.0,54,19,77200.0
+26,Dr. Sneha Kumar,Pediatrics,Pune,800.0,41,22,50900.0
+27,Dr. Aditya Verma,Pediatrics,Pune,1200.0,45,23,54600.0
+28,Dr. Arjun Reddy,Cardiology,Pune,1200.0,33,13,72600.0
+29,Dr. Arjun Reddy,Cardiology,Hyderabad,1000.0,48,19,69000.0
+30,Dr. Rohan Mehta,Cardiology,Pune,2000.0,34,17,45500.0
+31,Dr. Aditya Sharma,Pediatrics,Bangalore,1000.0,28,23,45900.0
+32,Dr. Kavya Mehta,Dermatology,Pune,700.0,47,15,86000.0
+33,Dr. Pooja Kumar,Orthopedics,Mumbai,1500.0,36,11,58600.0
+34,Dr. Aarav Verma,General Medicine,Chennai,700.0,40,19,62000.0
+35,Dr. Sneha Sharma,Neurology,Delhi,2000.0,39,10,59400.0
+36,Dr. Aditya Sharma,Ent,Delhi,2000.0,42,18,74900.0
+37,Dr. Priya Patel,General Medicine,Mumbai,500.0,32,15,56700.0
+38,Dr. Aarav Kumar,Pediatrics,Chennai,500.0,27,18,25100.0
+39,Dr. Aditi Singh,Orthopedics,Delhi,1500.0,39,26,69700.0
+40,Dr. Sneha Joshi,Dermatology,Bangalore,2000.0,32,25,52200.0
+41,Dr. Sneha Mehta,Orthopedics,Bangalore,2000.0,35,22,64600.0
+42,Dr. Vivaan Singh,Neurology,Pune,1000.0,38,18,62000.0
+43,Dr. Kavya Kumar,General Medicine,Bangalore,500.0,36,15,71000.0
+44,Dr. Isha Singh,Ent,Mumbai,1200.0,42,24,60800.0
+45,Dr. Kavya Reddy,Neurology,Chennai,2000.0,44,20,59900.0
+46,Dr. Kavya Gupta,Ent,Delhi,1200.0,38,15,64600.0
+47,Dr. Rohan Verma,Dermatology,Pune,500.0,34,15,30900.0
+48,Dr. Aditya Patel,Dermatology,Mumbai,700.0,48,19,97300.0
+49,Dr. Aarav Kumar,Dermatology,Bangalore,1000.0,34,26,54200.0
+50,Dr. Pooja Kumar,Orthopedics,Mumbai,1200.0,34,22,42700.0
+51,Dr. Isha Agarwal,Cardiology,Mumbai,1500.0,46,24,80500.0
+52,Dr. Rohan Reddy,Cardiology,Pune,500.0,47,19,79200.0
+53,Dr. Priya Kumar,Neurology,Delhi,1500.0,41,29,52500.0
+54,Dr. Sneha Kumar,General Medicine,Hyderabad,1500.0,36,15,63300.0
+55,Dr. Aditi Kumar,Orthopedics,Chennai,700.0,39,27,60400.0
+56,Dr. Arjun Patel,Dermatology,Bangalore,1000.0,42,17,59000.0
+57,Dr. Isha Agarwal,Orthopedics,Delhi,1500.0,38,19,53700.0
+58,Dr. Sneha Mehta,Ent,Chennai,2000.0,44,16,53000.0
+59,Dr. Kavya Reddy,Ent,Bangalore,1500.0,35,24,50100.0
+60,Dr. Pooja Agarwal,Ent,Hyderabad,1200.0,41,13,68100.0
+61,Dr. Priya Joshi,General Medicine,Mumbai,500.0,38,23,68900.0
+62,Dr. Aditi Agarwal,Cardiology,Hyderabad,2000.0,38,25,51600.0
+63,Dr. Sneha Joshi,Neurology,Chennai,1200.0,46,20,77800.0
+64,Dr. Aditya Patel,Orthopedics,Chennai,1000.0,40,16,58300.0
+65,Dr. Vivaan Reddy,General Medicine,Chennai,1000.0,45,17,71200.0
+66,Dr. Vivaan Joshi,Dermatology,Hyderabad,1000.0,44,14,72400.0
+67,Dr. Aditya Joshi,Dermatology,Delhi,1200.0,37,19,51900.0
+68,Dr. Aarav Joshi,Dermatology,Pune,2000.0,45,20,65600.0
+69,Dr. Rahul Sharma,Dermatology,Mumbai,2000.0,45,18,78400.0
+70,Dr. Aarav Reddy,Pediatrics,Hyderabad,500.0,35,12,44800.0
+71,Dr. Ananya Singh,General Medicine,Hyderabad,1200.0,39,21,62900.0
+72,Dr. Aarav Verma,Dermatology,Hyderabad,800.0,42,24,56400.0
+73,Dr. Ananya Patel,Ent,Bangalore,2000.0,47,25,69300.0
+74,Dr. Kavya Gupta,Orthopedics,Delhi,1000.0,44,20,59300.0
+75,Dr. Simran Gupta,Dermatology,Hyderabad,1500.0,35,16,58400.0
+76,Dr. Kavya Joshi,Neurology,Pune,2000.0,37,17,47700.0
+77,Dr. Rohan Verma,Neurology,Chennai,1000.0,49,20,83200.0
+78,Dr. Sneha Patel,General Medicine,Bangalore,2000.0,47,15,94500.0
+79,Dr. Aarav Sharma,Orthopedics,Delhi,1500.0,39,22,67700.0
+80,Dr. Isha Joshi,Dermatology,Chennai,1000.0,39,10,63500.0
+81,Dr. Simran Reddy,Neurology,Delhi,800.0,33,25,67900.0
+82,Dr. Aditya Kumar,Neurology,Pune,2000.0,34,26,58800.0
+83,Dr. Vivaan Sharma,Ent,Pune,1000.0,43,29,67800.0
+84,Dr. Neha Sharma,Neurology,Bangalore,500.0,31,17,40900.0
+85,Dr. Vivaan Agarwal,Cardiology,Delhi,1200.0,35,20,55700.0
+86,Dr. Kavya Sharma,Neurology,Pune,500.0,30,18,29700.0
+87,Dr. Ananya Mehta,Neurology,Chennai,700.0,40,19,66500.0
+88,Dr. Pooja Sharma,Neurology,Chennai,800.0,37,26,64000.0
+89,Dr. Arjun Agarwal,Orthopedics,Chennai,1200.0,46,25,82300.0
+90,Dr. Pooja Singh,Neurology,Mumbai,700.0,38,20,58200.0
+91,Dr. Kavya Joshi,Neurology,Delhi,800.0,32,17,41900.0
+92,Dr. Rahul Sharma,Pediatrics,Chennai,1500.0,41,20,56300.0
+93,Dr. Aditi Patel,General Medicine,Pune,1000.0,40,20,68900.0
+94,Dr. Sneha Mehta,Cardiology,Mumbai,1500.0,32,20,56500.0
+95,Dr. Kavya Gupta,Ent,Chennai,800.0,42,25,102000.0
+96,Dr. Isha Gupta,Dermatology,Bangalore,800.0,32,18,52800.0
+97,Dr. Ananya Patel,Ent,Chennai,1000.0,33,21,42100.0
+98,Dr. Arjun Reddy,Orthopedics,Pune,700.0,41,12,75400.0
+99,Dr. Pooja Mehta,Cardiology,Chennai,1000.0,40,28,56400.0
+100,Dr. Ananya Joshi,Pediatrics,Bangalore,1000.0,36,12,52100.0
