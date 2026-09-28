@@ -6,11 +6,11 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-MYSQL_USER = os.getenv("MYSQL_USER", "root")
-MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
-MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
-MYSQL_PORT = os.getenv("MYSQL_PORT", "3306")
-MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "healthcare_db")
+MYSQL_USER = os.getenv("MYSQL_USER") or os.getenv("MYSQLUSER", "root")
+MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD") or os.getenv("MYSQLPASSWORD")
+MYSQL_HOST = os.getenv("MYSQL_HOST") or os.getenv("MYSQLHOST", "localhost")
+MYSQL_PORT = os.getenv("MYSQL_PORT") or os.getenv("MYSQLPORT", "3306")
+MYSQL_DATABASE = os.getenv("MYSQL_DATABASE") or os.getenv("MYSQLDATABASE", "healthcare_db")
 
 DATABASE_URL = (
     f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}"
