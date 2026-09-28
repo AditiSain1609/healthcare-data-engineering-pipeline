@@ -34,3 +34,11 @@ logs/*.log
 
 # MySQL / local credentials
 *.sql.bak
+airflow_venv/
+
+airflow/logs/
+*.save
+
+output/etl_state.json
+output/data_quality_rules_report.csv
+output/powerbi_healthcare_dashboard.csv

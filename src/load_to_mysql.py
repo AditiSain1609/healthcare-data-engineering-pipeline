@@ -1,293 +1,230 @@
-import mysql.connector
+import os
 import pandas as pd
+import mysql.connector
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-DB_CONFIG = {
-    "host": "localhost",
-    "port": 3306,
-    "user": "root",
-    "database": "healthcare_db"
-}
+def get_mysql_connection():
+    """
+    Create MySQL connection using environment variables.
+    """
+
+    return mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST", "localhost"),
+        port=int(os.getenv("MYSQL_PORT", "3306")),
+        user=os.getenv("MYSQL_USER", "root"),
+        password=os.getenv("MYSQL_PASSWORD"),
+        database=os.getenv("MYSQL_DATABASE", "healthcare_db")
+    )
 
 
-# --------------------------------------------------
-# VALUE CONVERTER
-# --------------------------------------------------
+def get_connection_with_prompt():
+    """
+    Create MySQL connection.
+    If MYSQL_PASSWORD is not configured, ask the user.
+    """
 
-def convert_value(value):
+    password = os.getenv("MYSQL_PASSWORD")
 
-    if pd.isna(value):
-        return None
+    if not password:
+        password = input("Enter MySQL password: ")
 
-    if isinstance(value, pd.Timestamp):
-        return value.to_pydatetime()
+    return mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST", "localhost"),
+        port=int(os.getenv("MYSQL_PORT", "3306")),
+        user=os.getenv("MYSQL_USER", "root"),
+        password=password,
+        database=os.getenv("MYSQL_DATABASE", "healthcare_db")
+    )
 
-    return value
-
-
-# --------------------------------------------------
-# RESET TABLES
-# --------------------------------------------------
 
 def reset_tables(cursor):
-    print("\nResetting MySQL tables...")
+    """
+    Reset tables for a complete/full load.
+    """
+
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+
+    tables = [
+        "appointment_services",
+        "billing",
+        "appointments",
+        "doctors",
+        "patients"
+    ]
+
+    for table in tables:
+        cursor.execute(f"TRUNCATE TABLE {table}")
+
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+
+
+def insert_dataframe(cursor, df, table_name):
+    """
+    Insert a pandas DataFrame into MySQL.
+    """
+
+    if df.empty:
+        print(f"No records to insert into {table_name}")
+        return
+
+    columns = list(df.columns)
+
+    column_string = ", ".join(columns)
+    placeholders = ", ".join(["%s"] * len(columns))
+
+    query = f"""
+        INSERT INTO {table_name}
+        ({column_string})
+        VALUES ({placeholders})
+    """
+
+    records = []
+
+    for row in df.itertuples(index=False, name=None):
+        cleaned_row = []
+
+        for value in row:
+            if pd.isna(value):
+                cleaned_row.append(None)
+            elif isinstance(value, pd.Timestamp):
+                cleaned_row.append(value.to_pydatetime())
+            else:
+                cleaned_row.append(value)
+
+        records.append(tuple(cleaned_row))
+
+    cursor.executemany(query, records)
+
+    print(f"Inserted {len(records)} records into {table_name}")
+
+
+def load_valid_data_to_mysql(valid_data):
+    """
+    Complete/full load.
+
+    Existing MySQL tables are reset and valid records
+    are loaded in parent-to-child order.
+    """
+
+    connection = get_connection_with_prompt()
+    cursor = connection.cursor()
 
     try:
-        # Foreign key checks temporarily disable
-        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        print("\nResetting MySQL tables...")
+        reset_tables(cursor)
 
-        tables = [
-            "billing",
-            "appointment_services",
-            "appointments",
-            "doctors",
+        insert_dataframe(
+            cursor,
+            valid_data["patients"],
             "patients"
-        ]
-
-        for table in tables:
-
-            print(f"Clearing table: {table}...")
-
-            cursor.execute(
-                f"DELETE FROM {table}"
-            )
-
-            print(
-                f"Cleared table: {table}"
-            )
-
-        # Foreign key checks enable again
-        cursor.execute(
-            "SET FOREIGN_KEY_CHECKS = 1"
         )
 
-        print(
-            "All tables cleared successfully!"
+        insert_dataframe(
+            cursor,
+            valid_data["doctors"],
+            "doctors"
         )
+
+        insert_dataframe(
+            cursor,
+            valid_data["appointments"],
+            "appointments"
+        )
+
+        insert_dataframe(
+            cursor,
+            valid_data["appointment_services"],
+            "appointment_services"
+        )
+
+        insert_dataframe(
+            cursor,
+            valid_data["billing"],
+            "billing"
+        )
+
+        connection.commit()
+
+        print("\nFull MySQL load completed successfully.")
+
+        verify_mysql_counts(cursor)
 
     except Exception as error:
+        connection.rollback()
+        print("\nMySQL load failed:")
+        print(error)
+        raise
 
-        # Always restore FK checks
-        cursor.execute(
-            "SET FOREIGN_KEY_CHECKS = 1"
-        )
+    finally:
+        cursor.close()
+        connection.close()
 
-        raise error
 
-# --------------------------------------------------
-# LOAD PATIENTS
-# --------------------------------------------------
+def load_incremental_data_to_mysql(
+    appointments=None,
+    appointment_services=None,
+    billing=None
+):
+    """
+    Incremental load.
 
-def load_patients(cursor, df):
-
-    query = """
-        INSERT INTO patients
-        (
-            patient_id,
-            first_name,
-            last_name,
-            email,
-            phone,
-            city,
-            date_of_birth
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    Only new appointment, service and billing records
+    are inserted. Existing data is NOT deleted.
     """
 
-    records = []
+    connection = get_connection_with_prompt()
+    cursor = connection.cursor()
 
-    for _, row in df.iterrows():
+    try:
+        print("\nStarting incremental MySQL load...")
 
-        records.append(
-            (
-                convert_value(row["patient_id"]),
-                convert_value(row["first_name"]),
-                convert_value(row["last_name"]),
-                convert_value(row["email"]),
-                convert_value(row["phone"]),
-                convert_value(row["city"]),
-                convert_value(row["date_of_birth"])
+        if appointments is not None:
+            insert_dataframe(
+                cursor,
+                appointments,
+                "appointments"
             )
-        )
 
-    cursor.executemany(query, records)
+        if appointment_services is not None:
+            insert_dataframe(
+                cursor,
+                appointment_services,
+                "appointment_services"
+            )
 
-    print(
-        f"Patients loaded: {len(records)}"
-    )
+        if billing is not None:
+            insert_dataframe(
+                cursor,
+                billing,
+                "billing"
+            )
+
+        connection.commit()
+
+        print("\nIncremental MySQL load completed successfully.")
+
+        verify_mysql_counts(cursor)
+
+    except Exception as error:
+        connection.rollback()
+
+        print("\nIncremental MySQL load failed:")
+        print(error)
+
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
-# --------------------------------------------------
-# LOAD DOCTORS
-# --------------------------------------------------
-
-def load_doctors(cursor, df):
-
-    query = """
-        INSERT INTO doctors
-        (
-            doctor_id,
-            doctor_name,
-            specialization,
-            city,
-            consultation_fee
-        )
-        VALUES (%s, %s, %s, %s, %s)
+def verify_mysql_counts(cursor):
     """
-
-    records = []
-
-    for _, row in df.iterrows():
-
-        records.append(
-            (
-                convert_value(row["doctor_id"]),
-                convert_value(row["doctor_name"]),
-                convert_value(row["specialization"]),
-                convert_value(row["city"]),
-                convert_value(row["consultation_fee"])
-            )
-        )
-
-    cursor.executemany(query, records)
-
-    print(
-        f"Doctors loaded: {len(records)}"
-    )
-
-
-# --------------------------------------------------
-# LOAD APPOINTMENTS
-# --------------------------------------------------
-
-def load_appointments(cursor, df):
-
-    query = """
-        INSERT INTO appointments
-        (
-            appointment_id,
-            patient_id,
-            doctor_id,
-            appointment_date,
-            appointment_type,
-            status
-        )
-        VALUES (%s, %s, %s, %s, %s, %s)
+    Verify current record counts in MySQL.
     """
-
-    records = []
-
-    for _, row in df.iterrows():
-
-        records.append(
-            (
-                convert_value(row["appointment_id"]),
-                convert_value(row["patient_id"]),
-                convert_value(row["doctor_id"]),
-                convert_value(row["appointment_date"]),
-                convert_value(row["appointment_type"]),
-                convert_value(row["status"])
-            )
-        )
-
-    cursor.executemany(query, records)
-
-    print(
-        f"Appointments loaded: {len(records)}"
-    )
-
-
-# --------------------------------------------------
-# LOAD SERVICES
-# --------------------------------------------------
-
-def load_appointment_services(cursor, df):
-
-    query = """
-        INSERT INTO appointment_services
-        (
-            service_id,
-            appointment_id,
-            doctor_id,
-            service_name,
-            duration_minutes,
-            quantity
-        )
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """
-
-    records = []
-
-    for _, row in df.iterrows():
-
-        records.append(
-            (
-                convert_value(row["service_id"]),
-                convert_value(row["appointment_id"]),
-                convert_value(row["doctor_id"]),
-                convert_value(row["service_name"]),
-                convert_value(row["duration_minutes"]),
-                convert_value(row["quantity"])
-            )
-        )
-
-    cursor.executemany(query, records)
-
-    print(
-        f"Appointment services loaded: {len(records)}"
-    )
-
-
-# --------------------------------------------------
-# LOAD BILLING
-# --------------------------------------------------
-
-def load_billing(cursor, df):
-
-    query = """
-        INSERT INTO billing
-        (
-            billing_id,
-            appointment_id,
-            billing_amount,
-            payment_type,
-            payment_status,
-            transaction_date
-        )
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """
-
-    records = []
-
-    for _, row in df.iterrows():
-
-        records.append(
-            (
-                convert_value(row["billing_id"]),
-                convert_value(row["appointment_id"]),
-                convert_value(row["billing_amount"]),
-                convert_value(row["payment_type"]),
-                convert_value(row["payment_status"]),
-                convert_value(row["transaction_date"])
-            )
-        )
-
-    cursor.executemany(query, records)
-
-    print(
-        f"Billing records loaded: {len(records)}"
-    )
-
-
-# --------------------------------------------------
-# VERIFY DATABASE
-# --------------------------------------------------
-
-def verify_database(cursor):
-
-    print("\n" + "=" * 60)
-    print("DATABASE VERIFICATION")
-    print("=" * 60)
 
     tables = [
         "patients",
@@ -297,107 +234,30 @@ def verify_database(cursor):
         "billing"
     ]
 
-    for table in tables:
+    print("\nMySQL record counts:")
 
+    for table in tables:
         cursor.execute(
             f"SELECT COUNT(*) FROM {table}"
         )
 
         count = cursor.fetchone()[0]
 
-        print(
-            f"{table}: {count}"
-        )
-
-    print("=" * 60)
+        print(f"{table}: {count}")
 
 
-# --------------------------------------------------
-# MAIN MYSQL LOAD FUNCTION
-# --------------------------------------------------
+if __name__ == "__main__":
 
-def load_valid_data_to_mysql(valid_data):
+    print("Testing MySQL loader module...")
 
-    print("\nConnecting to MySQL...")
+    print("""
+This module supports:
 
-    password = input(
-        "Enter MySQL password: "
-    )
+1. Full load
+   load_valid_data_to_mysql()
 
-    connection = mysql.connector.connect(
-        host=DB_CONFIG["host"],
-        port=DB_CONFIG["port"],
-        user=DB_CONFIG["user"],
-        password=password,
-        database=DB_CONFIG["database"]
-    )
+2. Incremental load
+   load_incremental_data_to_mysql()
 
-    cursor = connection.cursor()
-
-    print("MySQL connection successful!")
-
-    try:
-
-        # Clear previous data
-        reset_tables(cursor)
-
-        print("\nLoading patients...")
-        load_patients(
-            cursor,
-            valid_data["patients"]
-        )
-
-        print("\nLoading doctors...")
-        load_doctors(
-            cursor,
-            valid_data["doctors"]
-        )
-
-        print("\nLoading appointments...")
-        load_appointments(
-            cursor,
-            valid_data["appointments"]
-        )
-
-        print("\nLoading appointment services...")
-        load_appointment_services(
-            cursor,
-            valid_data["appointment_services"]
-        )
-
-        print("\nLoading billing...")
-        load_billing(
-            cursor,
-            valid_data["billing"]
-        )
-
-        connection.commit()
-
-        print(
-            "\nDATA SUCCESSFULLY LOADED INTO MYSQL!"
-        )
-
-        verify_database(cursor)
-
-    except Exception as e:
-
-        connection.rollback()
-
-        print(
-            "\nMySQL loading failed!"
-        )
-
-        print(
-            f"Error: {e}"
-        )
-
-        raise
-
-    finally:
-
-        cursor.close()
-        connection.close()
-
-        print(
-            "\nMySQL connection closed."
-        )
+No database operation is executed automatically here.
+""")

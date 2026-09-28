@@ -1,9 +1,9 @@
 import pandas as pd
 import os
 
-from ingestion import load_all_data
-from cleaning import clean_all_data
-from validation import validate_all_data
+from src.ingestion import load_all_data
+from src.cleaning import clean_all_data
+from src.validation import validate_all_data
 
 
 OUTPUT_DIR = "output"
