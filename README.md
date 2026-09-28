@@ -1,397 +1,431 @@
-# Healthcare Network Data Engineering Pipeline
+# Healthcare Data Engineering & Analytics Platform
 
-An end-to-end healthcare data engineering project that ingests CSV/JSON data, cleans and validates records with Python/Pandas, transforms the data, loads valid records into MySQL, and performs business analysis with SQL. A Streamlit dashboard is also included for interactive exploration.
+An end-to-end healthcare data engineering and analytics platform built using Python, Pandas, NumPy, MySQL, SQL, FastAPI, Apache Airflow, Docker, Streamlit, and Power BI/Fabric.
 
-## Project Overview
+The project demonstrates a complete data engineering workflow:
 
-Healthcare networks receive operational data from multiple systems. Raw data can contain duplicates, missing values, inconsistent text, incorrect data types, invalid values, and invalid patient/doctor/appointment references.
+**Raw Data → Ingestion → Cleaning → Validation → Data Quality → Transformation → MySQL → Data Warehouse → Analytics → API → Dashboard → Orchestration**
 
-This project builds a modular ETL pipeline to turn those raw files into clean, validated, relational data that can be queried for business insights.
+---
 
-The pipeline follows:
+## 📌 Project Overview
 
-**Raw CSV / JSON → Python Ingestion → Cleaning → Validation → Valid/Invalid Separation → Transformation → MySQL → SQL Analysis → Business Insights**
+This project processes healthcare-related data from multiple CSV and JSON sources and transforms it into a reliable analytics-ready system.
 
-## Business Scenario
+The platform handles:
 
-The project represents a multi-city hospital network containing:
-
-- Patients
-- Doctors
-- Appointments
+- Patient data
+- Doctor data
+- Appointment data
 - Appointment services
-- Billing and payment transactions
+- Billing and payment data
 
-Operations analysts need reliable data for reporting, revenue analysis, appointment analysis, patient activity analysis, and data-quality monitoring.
+It includes data quality validation, invalid-record handling, ETL processing, incremental loading, MySQL storage, star-schema data warehousing, SQL analytics, REST APIs, dashboards, automated orchestration, and testing.
 
-## Architecture
+---
 
-```text
-patients.csv
-doctors.csv
-appointments.csv
-appointment_services.csv
-billing.json
-        │
-        ▼
-┌──────────────────────┐
-│ Python Data Ingestion│
-│      Pandas          │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│    Data Cleaning     │
-│ duplicates / formats │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│   Data Validation    │
-│ business-rule checks │
-└───────┬────────┬─────┘
-        │        │
-        ▼        ▼
-   Valid Data   Invalid CSVs
-        │
-        ▼
-┌──────────────────────┐
-│   Transformation     │
-│ Pandas + NumPy       │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│       MySQL          │
-│ relational database  │
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│     SQL Analysis     │
-│ 18 analytical queries│
-└──────────┬───────────┘
-           ▼
-┌──────────────────────┐
-│  Business Insights   │
-│ + Streamlit Dashboard│
-└──────────────────────┘
-```
-
-## Technologies Used
-
-| Technology | Purpose |
-|---|---|
-| Python | ETL orchestration and modular pipeline |
-| Pandas | Data ingestion, cleaning, validation, transformation |
-| NumPy | Numerical transformation and metric calculations |
-| MySQL | Relational storage and integrity constraints |
-| mysql-connector-python | Python-to-MySQL connection and loading |
-| SQL | Business analysis |
-| Streamlit | Interactive dashboard |
-| Git/GitHub | Version control and project documentation |
-
-## Dataset
-
-The project contains five source datasets:
-
-| Dataset | Raw Records | Valid Records |
-|---|---:|---:|
-| patients.csv | 501 | 499 |
-| doctors.csv | 101 | 98 |
-| appointments.csv | 2,001 | 1,940 |
-| appointment_services.csv | 4,000 | 3,797 |
-| billing.json | 2,000 | 1,937 |
-
-The raw data intentionally contains realistic data-quality issues so that the pipeline demonstrates actual cleaning and validation rather than processing an already-clean dataset.
-
-## Data Quality Issues
-
-The raw data includes:
-
-- Missing patient email
-- Missing doctor consultation fee
-- Missing appointment date
-- Duplicate patient records
-- Duplicate doctor records
-- Duplicate appointment records
-- Inconsistent city/text formatting
-- Inconsistent payment/appointment text
-- Numeric values represented in incorrect formats
-- Negative consultation fees
-- Negative service duration/quantity
-- Invalid payment statuses
-- Invalid patient IDs
-- Invalid doctor IDs
-- Invalid appointment references
-
-## Cleaning Strategy
-
-Cleaning is performed before business validation.
-
-### Patients
-- Remove duplicate `patient_id` records
-- Strip and standardize city names
-- Normalize email text to lowercase
-- Convert date of birth to a date type
-
-### Doctors
-- Remove duplicate `doctor_id` records
-- Strip doctor names
-- Standardize specialization and city text
-- Convert consultation fee to numeric
-
-### Appointments
-- Remove duplicate `appointment_id` records
-- Convert patient/doctor IDs to numeric
-- Convert appointment date to datetime
-- Standardize appointment type and status text
-
-### Appointment Services
-- Convert IDs, duration, and quantity to numeric
-- Standardize service names
-
-### Billing
-- Convert appointment ID and billing amount to numeric
-- Standardize payment type and payment status
-- Convert transaction date to datetime
-
-## Validation Rules
-
-Invalid records are not silently discarded. They are written to separate CSV files under `output/`.
-
-### Patients
-- Patient ID must be non-null
-- Patient ID must be unique
-- Email must follow a reasonable email pattern
-
-### Doctors
-- Doctor ID must be unique and non-null
-- Consultation fee must be greater than zero
-
-### Appointments
-- Appointment ID must be unique and non-null
-- Patient ID must exist in the valid patients dataset
-- Doctor ID must exist in the valid doctors dataset
-- Appointment date must be non-null
-
-### Appointment Services
-- Appointment ID must exist in valid appointments
-- Doctor ID must exist in valid doctors
-- Duration must be greater than zero
-- Quantity must be greater than zero
-
-### Billing
-- Billing ID must be unique and non-null
-- Appointment ID must exist in valid appointments
-- Billing amount must be greater than zero
-- Payment status must be one of `Successful`, `Failed`, or `Pending`
-
-## Invalid Records
-
-The latest pipeline run produced:
-
-| Dataset | Invalid Records |
-|---|---:|
-| Patients | 1 |
-| Doctors | 2 |
-| Appointments | 60 |
-| Appointment Services | 203 |
-| Billing | 63 |
-
-Generated files:
+## 🏗️ Architecture
 
 ```text
+                    ┌──────────────────────┐
+                    │     Raw CSV / JSON   │
+                    │                      │
+                    │ patients.csv         │
+                    │ doctors.csv          │
+                    │ appointments.csv     │
+                    │ appointment_services │
+                    │ billing.json         │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ Python ETL Pipeline  │
+                    │                      │
+                    │ 1. Ingestion        │
+                    │ 2. Cleaning         │
+                    │ 3. Validation       │
+                    │ 4. Data Quality     │
+                    │ 5. Transformation   │
+                    └──────────┬───────────┘
+                               │
+                 ┌─────────────┴─────────────┐
+                 │                           │
+                 ▼                           ▼
+        ┌────────────────┐          ┌─────────────────┐
+        │ Valid Data     │          │ Invalid Data    │
+        │                │          │                 │
+        │ Cleaned Data   │          │ invalid_*.csv   │
+        └───────┬────────┘          └─────────────────┘
+                │
+                ▼
+        ┌─────────────────────┐
+        │       MySQL         │
+        │   healthcare_db     │
+        └──────────┬──────────┘
+                   │
+          ┌────────┴─────────┐
+          │                  │
+          ▼                  ▼
+ ┌──────────────────┐  ┌─────────────────┐
+ │ Star Schema /    │  │ SQL Analytics   │
+ │ Data Warehouse   │  │                 │
+ └────────┬─────────┘  └─────────────────┘
+          │
+          ├───────────────┐
+          │               │
+          ▼               ▼
+ ┌────────────────┐ ┌────────────────┐
+ │ Power BI /     │ │ FastAPI REST   │
+ │ Microsoft      │ │ API            │
+ │ Fabric         │ └────────────────┘
+ └────────────────┘
+
+              Apache Airflow
+                    +
+                  Docker
+              for orchestration
+🛠️ Tech Stack
+Technology	Purpose
+Python	ETL and backend development
+Pandas	Data processing
+NumPy	Numerical transformations
+MySQL	Relational database
+SQL	Data analysis
+SQLAlchemy	Database ORM
+PyMySQL	MySQL connectivity
+FastAPI	REST API
+Streamlit	Interactive dashboard
+Apache Airflow	Workflow orchestration
+Docker	Airflow containerization
+PostgreSQL	Airflow metadata database
+Power BI / Microsoft Fabric	Business intelligence
+Git	Version control
+GitHub	Source code hosting
+📂 Source Datasets
+
+The project uses five healthcare datasets:
+
+Dataset	Raw Records	Valid Records
+patients.csv	501	499
+doctors.csv	101	98
+appointments.csv	2,001	1,940
+appointment_services.csv	4,000	3,797
+billing.json	2,000	1,937
+
+The raw data intentionally contains realistic data-quality issues such as duplicates, missing values, invalid references, inconsistent text, and invalid numeric values.
+
+🧹 Data Cleaning
+
+The cleaning stage performs:
+
+Duplicate removal
+Text normalization
+Email normalization
+City normalization
+Date conversion
+Numeric conversion
+Missing-value handling
+Standardization of categorical fields
+✅ Data Validation
+
+The validation framework checks healthcare records against business rules.
+
+Patients
+Patient ID validation
+Duplicate patient IDs
+Email validation
+Missing values
+Doctors
+Doctor ID validation
+Positive consultation fees
+Missing values
+Appointments
+Appointment ID validation
+Valid appointment dates
+Patient foreign-key validation
+Doctor foreign-key validation
+Valid appointment status/type
+Appointment Services
+Appointment reference validation
+Doctor reference validation
+Positive duration
+Positive quantity
+Billing
+Billing ID validation
+Appointment reference validation
+Positive billing amount
+Valid payment status
+
+Invalid records are stored separately:
+
 output/
 ├── invalid_patients.csv
 ├── invalid_doctors.csv
 ├── invalid_appointments.csv
 ├── invalid_appointment_services.csv
 └── invalid_billing.csv
-```
+🔎 Data Quality Engine
 
-## Database Design
+The project includes a dedicated rule-based Data Quality Engine.
 
-The MySQL database is named `healthcare_db`.
+Location:
 
-Tables:
+src/quality/
+├── __init__.py
+├── quality_rules.py
+└── quality_engine.py
 
-- `patients`
-- `doctors`
-- `appointments`
-- `appointment_services`
-- `billing`
+The engine evaluates rules such as:
 
-### Relationships
+ID uniqueness
+Required fields
+Email validity
+Positive numeric values
+Foreign-key references
+Valid appointment dates
+Valid payment statuses
 
-- `patients.patient_id` → `appointments.patient_id`
-- `doctors.doctor_id` → `appointment_services.doctor_id`
-- `appointments.appointment_id` → `appointment_services.appointment_id`
-- `appointments.appointment_id` → `billing.appointment_id`
+The results are generated as rule-level quality reports.
 
-Parent tables are loaded before child tables so foreign-key relationships remain valid.
+📊 Data Transformations
 
-See `ER_Diagram.png` for the database relationship diagram.
+The transformation layer generates:
 
-## ETL Process
+Patient-level metrics
+Doctor-level metrics
+Daily revenue
+Monthly revenue
+Average appointment value
+Cancellation percentage
 
-The complete pipeline is executed through:
+The transformation logic uses Pandas and NumPy.
 
-```bash
-python3 src/main.py
-```
+🗄️ MySQL Database
 
-Pipeline stages:
+Database:
 
-1. Load raw CSV/JSON data
-2. Clean the datasets
-3. Validate records
-4. Separate valid and invalid records
-5. Transform the valid data
-6. Generate the data-quality report
-7. Connect to MySQL
-8. Clear previous pipeline data
-9. Load valid records in dependency order
-10. Verify MySQL record counts
-11. Write pipeline logs
+healthcare_db
 
-### Latest Successful Load
+Main tables:
 
-```text
-patients                     499
-doctors                       98
-appointments                1940
-appointment_services        3797
-billing                     1937
-```
+patients
+doctors
+appointments
+appointment_services
+billing
 
-## Transformations
+Current validated dataset:
 
-The Pandas/NumPy transformation layer produces:
+Table	Records
+Patients	499
+Doctors	98
+Appointments	1,940
+Appointment Services	3,797
+Billing	1,937
+🔄 Incremental ETL
 
-### Patient Metrics
-- Total appointments per patient
-- Total billing amount per patient
-- Average appointment value
-- Last appointment date
+The project supports incremental processing using ETL state tracking.
 
-### Doctor Metrics
-- Total appointment services
-- Total revenue
-- Number of appointments
-- Consultation fee information
+State file:
 
-### Business Metrics
-- Daily revenue
-- Monthly revenue
-- Average appointment value
-- Cancellation percentage
+output/etl_state.json
 
-Generated files include:
+The incremental pipeline tracks:
 
-```text
-output/
-├── patient_metrics.csv
-├── doctor_metrics.csv
-├── daily_revenue.csv
-├── monthly_revenue.csv
-└── data_quality_report.csv
-```
+Appointment date watermark
+Billing transaction date watermark
 
-## Data Quality Report
+This allows new appointment and billing records to be processed without unnecessarily reprocessing the complete dataset.
 
-The project includes an automated data-quality score.
+⭐ Data Warehouse / Star Schema
 
-The latest report tracks:
+A dimensional data warehouse layer is included for analytics.
 
-- Total records
-- Cleaned records
-- Valid records
-- Invalid records
-- Duplicate records
-- Missing values
-- Quality score
+Dimension Tables
+dim_patient
+dim_doctor
+dim_date
+dim_service
+Fact Tables
+fact_appointments
+fact_billing
 
-Approximate latest quality scores from the pipeline's scoring method:
+Warehouse SQL files:
 
-| Dataset | Quality Score |
-|---|---:|
-| Patients | 99.60 |
-| Doctors | 97.03 |
-| Appointments | 96.95 |
-| Appointment Services | 94.92 |
-| Billing | 96.85 |
+sql/star_schema.sql
+sql/warehouse_analysis.sql
 
-## SQL Analysis
+Current warehouse counts:
 
-`sql/analysis.sql` contains 18 analytical queries demonstrating:
+Table	Records
+dim_patient	499
+dim_doctor	98
+dim_date	243
+dim_service	8
+fact_appointments	1,940
+fact_billing	1,937
+📈 SQL Analytics
 
-- `WHERE`
-- `ORDER BY`
-- `LIMIT`
-- `COUNT`
-- `SUM`
-- `AVG`
-- `MIN`
-- `MAX`
-- `GROUP BY`
-- `HAVING`
-- `INNER JOIN`
-- `LEFT JOIN`
-- Multiple-table joins
-- Subqueries
+sql/analysis.sql contains 18 analytical queries covering:
 
-Required business questions include:
+WHERE
+ORDER BY
+LIMIT
+COUNT
+SUM
+AVG
+GROUP BY
+HAVING
+INNER JOIN
+LEFT JOIN
+Multi-table JOIN
+Subqueries
 
-1. Top 10 patients by total billing
-2. Highest-revenue doctors
-3. Patients with no appointments
-4. Doctors with no appointment services
-5. Average appointment value by city
-6. Patients with more than five appointments
-7. Highest-revenue city
-8. Doctors earning above average revenue
-9. Patients with both successful and failed payments
-10. Appointment cancellation percentage
+Business questions include:
 
-### Additional Business Questions
+Top 10 patients by billing
+Highest-revenue doctors
+Patients with no appointments
+Doctors with no services
+Average appointment value by city
+Patients with more than five appointments
+Revenue by city
+Doctors above average revenue
+Patients with successful and failed payments
+Appointment cancellation percentage
+Monthly revenue trends
+Service performance analysis
+🌐 FastAPI REST API
 
-The analysis also includes additional operational questions such as:
+The project exposes healthcare data and analytics through FastAPI.
 
-- How are appointments distributed by status?
-- What is the average consultation fee by specialization?
-- Which services are used most frequently?
+Structure:
 
-## Streamlit Dashboard
-
-A Streamlit dashboard is included for interactive use.
+api/
+├── main.py
+├── database.py
+├── models.py
+└── routes/
+    ├── patients.py
+    ├── doctors.py
+    ├── appointments.py
+    ├── billing.py
+    └── analytics.py
 
 Run:
 
-```bash
+python3 -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+
+Swagger documentation:
+
+http://127.0.0.1:8000/docs
+API Endpoints
+GET /patients/
+GET /patients/{patient_id}
+
+GET /doctors/
+GET /doctors/{doctor_id}
+
+GET /appointments/
+GET /appointments/{appointment_id}
+
+GET /billing/
+GET /billing/{billing_id}
+
+GET /analytics/summary
+GET /analytics/top-patients
+GET /analytics/top-doctors
+GET /analytics/revenue-by-city
+GET /analytics/cancellation-rate
+📊 Streamlit Dashboard
+
+An interactive Streamlit dashboard is included.
+
+Run:
+
 python3 -m streamlit run app/dashboard.py
-```
-
-Then open:
-
-```text
-http://localhost:8501
-```
 
 Dashboard sections:
 
-- Overview
-- Patients
-- Doctors
-- Appointments
-- Billing
-- Data Quality
+Overview
+Patients
+Doctors
+Appointments
+Billing
+Data Quality
+📊 Power BI / Microsoft Fabric
 
-The dashboard connects to MySQL and presents operational and data-quality information without exposing database credentials in source code.
+The project includes a business intelligence layer using Microsoft Fabric / Power BI Service.
 
-## Project Structure
+Page 1 — Business Analytics
 
-```text
+Includes:
+
+Total Revenue
+Total Patients
+Total Appointments
+Total Doctors
+Monthly Revenue Trend
+Top Doctors by Revenue
+Revenue by City
+Average Appointment Value
+Appointment Status Distribution
+Cancellation Analysis
+Patient Analysis
+Doctor Services Analysis
+Billing / Revenue Analysis
+Page 2 — Data Quality
+
+Includes:
+
+Overall Data Quality Score
+Invalid Records by Table
+Data Quality Rule Analysis
+Invalid Patients
+Invalid Doctors
+Invalid Appointments
+Invalid Services
+Invalid Billing
+⚙️ Apache Airflow
+
+Apache Airflow is used to orchestrate the ETL pipeline.
+
+DAG:
+
+healthcare_etl_pipeline
+
+Location:
+
+airflow/dags/healthcare_etl_dag.py
+
+The DAG executes the healthcare ETL pipeline on a scheduled basis.
+
+🐳 Docker
+
+Airflow is containerized using Docker Compose.
+
+Configuration:
+
+docker-compose.airflow.yaml
+
+Docker is used to provide a consistent local Airflow environment on macOS.
+
+🧪 Testing
+
+Validation tests are included in:
+
+tests/test_validation.py
+
+The tests cover important validation behavior and data-quality checks.
+
+📁 Project Structure
 healthcare-data-engineering/
 │
-├── app/
-│   └── dashboard.py
+├── .gitignore
+├── README.md
+├── ER_Diagram.png
+├── requirements.txt
+├── docker-compose.airflow.yaml
 │
 ├── data/
 │   ├── patients.csv
@@ -400,166 +434,107 @@ healthcare-data-engineering/
 │   ├── appointment_services.csv
 │   └── billing.json
 │
-├── logs/
-│   └── pipeline.log
-│
 ├── output/
 │   ├── invalid_patients.csv
 │   ├── invalid_doctors.csv
 │   ├── invalid_appointments.csv
 │   ├── invalid_appointment_services.csv
 │   ├── invalid_billing.csv
-│   ├── patient_metrics.csv
-│   ├── doctor_metrics.csv
-│   ├── daily_revenue.csv
-│   ├── monthly_revenue.csv
-│   └── data_quality_report.csv
-│
-├── sql/
-│   ├── schema.sql
-│   └── analysis.sql
+│   ├── etl_state.json
+│   └── data_quality_rules_report.csv
 │
 ├── src/
-│   ├── generate_data.py
+│   ├── main.py
 │   ├── ingestion.py
 │   ├── cleaning.py
 │   ├── validation.py
 │   ├── transformation.py
-│   ├── quality_report.py
 │   ├── load_to_mysql.py
-│   └── main.py
+│   ├── quality_report.py
+│   ├── generate_data.py
+│   ├── incremental_etl.py
+│   │
+│   └── quality/
+│       ├── __init__.py
+│       ├── quality_rules.py
+│       └── quality_engine.py
 │
-├── requirements.txt
-├── ER_Diagram.png
-└── README.md
-```
+├── sql/
+│   ├── schema.sql
+│   ├── analysis.sql
+│   ├── star_schema.sql
+│   └── warehouse_analysis.sql
+│
+├── app/
+│   └── dashboard.py
+│
+├── api/
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│   └── routes/
+│       ├── patients.py
+│       ├── doctors.py
+│       ├── appointments.py
+│       ├── billing.py
+│       └── analytics.py
+│
+├── airflow/
+│   └── dags/
+│       └── healthcare_etl_dag.py
+│
+└── tests/
+    └── test_validation.py
+🔐 Security
 
-## Error Handling and Logging
+Sensitive configuration is stored using environment variables.
 
-The pipeline writes execution information to:
+Do not commit:
 
-```text
-logs/pipeline.log
-```
+MySQL passwords
+API keys
+.env files containing secrets
+Personal credentials
 
-The log records important events such as:
+Use .gitignore and environment variables for local configuration.
 
-- Files loaded
-- Record counts
-- Validation results
-- Transformation completion
-- MySQL connection status
-- Database loading
-- Errors
-
-## Original Feature
-
-### Automated Data Quality Score
-
-An automated data-quality scoring feature was added beyond the core ETL requirements.
-
-The score considers invalid records and missing values and produces a dataset-level quality score in `data_quality_report.csv`.
-
-This gives the team a quick way to identify which source dataset needs the most attention.
-
-## Challenges
-
-One practical challenge was handling MySQL table locks during repeated ETL runs. Previous pipeline sessions were holding locks on the `billing` table, causing `TRUNCATE`/`DELETE` operations to wait.
-
-The issue was diagnosed through MySQL process inspection and resolved by terminating the stale sessions. The reset logic was then changed to use ordered `DELETE` operations with foreign-key checks temporarily disabled.
-
-This demonstrates an important real-world database troubleshooting scenario.
-
-## Security
-
-Do **not** commit:
-
-- MySQL passwords
-- API keys
-- Personal credentials
-- `.env` files containing secrets
-
-Use environment variables or a local configuration that is excluded from Git.
-
-Example:
-
-```text
-.env
-```
-
-should be included in `.gitignore` if used.
-
-## Future Improvements
-
-For a production-grade version, the pipeline could be extended with:
-
-- Environment-based configuration
-- Retry logic for transient database failures
-- Incremental loading instead of full refresh
-- Data lineage tracking
-- Automated unit tests
-- CI/CD with GitHub Actions
-- Airflow or another workflow orchestrator
-- Cloud object storage
-- Monitoring and alerting
-- More advanced data-quality rules
-- Containerization with Docker
-
-## How to Run
-
-### 1. Install dependencies
-
-```bash
+▶️ How to Run
+1. Install dependencies
 pip install -r requirements.txt
-```
+2. Configure environment variables
 
-### 2. Generate sample data
+Create a local .env file:
 
-```bash
-python3 src/generate_data.py
-```
-
-### 3. Create the MySQL schema
-
-Run:
-
-```text
-sql/schema.sql
-```
-
-inside MySQL/DBeaver.
-
-### 4. Run the ETL pipeline
-
-```bash
-python3 src/main.py
-```
-
-Enter the MySQL password when prompted.
-
-### 5. Run the dashboard
-
-```bash
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=your_password
+MYSQL_DATABASE=healthcare_db
+3. Run ETL
+python3 -m src.main
+4. Run Streamlit
 python3 -m streamlit run app/dashboard.py
-```
+5. Run FastAPI
+python3 -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+6. Run Airflow with Docker
+docker compose -f docker-compose.airflow.yaml up -d
 
-## Deliverables
+Airflow UI:
 
-This repository contains the required project components:
+http://localhost:8080
+🚀 Future Improvements
 
-- Python source code
-- Dataset generator and raw datasets
-- MySQL `schema.sql`
-- SQL `analysis.sql`
-- ER diagram
-- Data-quality report
-- Pipeline log
-- README
-- Invalid-record output files
-- Transformation outputs
-- Streamlit dashboard
+Potential production-level improvements include:
 
----
-
-**Project:** Healthcare Network Data Engineering Pipeline  
-**Focus:** Python → Pandas/NumPy → MySQL → SQL Analysis → Dashboard
+Cloud deployment using AWS/Azure/GCP
+Apache Spark for large-scale processing
+Kafka for real-time streaming
+dbt for analytics engineering
+Data lake integration
+API authentication
+API pagination and advanced filtering
+Data lineage
+Monitoring and alerting
+CI/CD with GitHub Actions
+Production-grade secrets management
+Idempotent upsert strategy for incremental loads
